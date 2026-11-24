@@ -1,8 +1,17 @@
+import os
 from pathlib import Path
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = '_0!l@0_5s4rrcuo8*6n%goigz4kd4x=s(b%v)=aa#-h)caeto-'
+env_path = BASE_DIR / '.env'
+if env_path.exists():
+    for line in env_path.read_text().splitlines():
+        if '=' in line and not line.strip().startswith('#'):
+            key, value = line.strip().split('=', 1)
+            os.environ.setdefault(key, value)
+
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'local-dev-only-fallback-key')
 
 DEBUG = False
 
