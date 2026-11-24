@@ -2,11 +2,11 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-change-this-key-in-production-enrollflow-2026'
+SECRET_KEY = '_0!l@0_5s4rrcuo8*6n%goigz4kd4x=s(b%v)=aa#-h)caeto-'
 
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['FrancoB013.pythonanywhere.com']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -68,5 +68,6 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
