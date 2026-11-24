@@ -1,0 +1,339 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EnrollFlow — Class & Student Profile Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'students/css/style.css' %}">
+</head>
+<body>
+    <!-- Top Header -->
+    <header class="topbar">
+        <div class="container topbar-inner">
+            <a href="{% url 'students:directory' %}" class="brand brand-link">
+                <div class="brand-logo">EF</div>
+                <div>
+                    <h1 class="brand-title">EnrollFlow</h1>
+                    <p class="brand-subtitle">Class Roster & Student Profile Portal</p>
+                </div>
+            </a>
+
+            <div class="topbar-actions">
+                <a href="{% url 'students:register' %}" class="btn btn-primary">
+                    + Register Student
+                </a>
+                <a href="/admin/" target="_blank" class="btn btn-soft">
+                    Admin Panel
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container main-content">
+        {% if messages %}
+            <div class="messages-stack">
+                {% for message in messages %}
+                    <div class="alert-banner alert-{{ message.tags|default:'success' }}">
+                        <span>{{ message }}</span>
+                        <button type="button" class="alert-close" aria-label="Dismiss notification">&times;</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Summary Metrics Row -->
+        <section class="stats-grid" aria-label="Enrollment Summary">
+            <div class="stat-card">
+                <span class="stat-label">Students in View</span>
+                <strong class="stat-value">{{ total_count }}</strong>
+                <span class="stat-hint">{% if selected_section %}{{ selected_section }}{% else %}All Class Sections{% endif %}</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Officially Enrolled</span>
+                <strong class="stat-value text-purple">{{ enrolled_count }}</strong>
+                <span class="stat-hint">Cleared & active</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Pending Review</span>
+                <strong class="stat-value">{{ pending_count }}</strong>
+                <span class="stat-hint">Awaiting registrar check</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Class Average GPA</span>
+                <strong class="stat-value">{% if avg_gpa %}{{ avg_gpa }}{% else %}—{% endif %}</strong>
+                <span class="stat-hint">Previous academic standing</span>
+            </div>
+        </section>
+
+        <!-- Filter & Search Bar -->
+        <section class="filter-bar">
+            <form method="get" class="filter-form">
+                <div class="search-box">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input
+                        type="text"
+                        name="q"
+                        value="{{ query }}"
+                        placeholder="Search by student name, ID number, or email..."
+                        aria-label="Search students"
+                    >
+                </div>
+
+                <select name="section" aria-label="Filter by class section" onchange="this.form.submit()">
+                    <option value="">All Classes ({{ sections|length }})</option>
+                    {% for sec in sections %}
+                        <option value="{{ sec }}" {% if selected_section == sec %}selected{% endif %}>
+                            Class: {{ sec }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <select name="status" aria-label="Filter by enrollment status" onchange="this.form.submit()">
+                    <option value="">All Statuses</option>
+                    <option value="Enrolled" {% if selected_status == 'Enrolled' %}selected{% endif %}>Enrolled</option>
+                    <option value="Pending Review" {% if selected_status == 'Pending Review' %}selected{% endif %}>Pending Review</option>
+                    <option value="Conditional" {% if selected_status == 'Conditional' %}selected{% endif %}>Conditional</option>
+                </select>
+
+                <button type="submit" class="btn btn-primary">Filter</button>
+                {% if query or selected_section or selected_status %}
+                    <a href="{% url 'students:directory' %}" class="btn btn-ghost">Reset</a>
+                {% endif %}
+            </form>
+        </section>
+
+        <!-- Master-Detail Workspace -->
+        <section class="workspace-grid">
+            <!-- Left Column: Student Roster List -->
+            <aside class="roster-panel">
+                <div class="panel-header">
+                    <h2>Class Roster</h2>
+                    <span class="count-pill">{{ total_count }}</span>
+                </div>
+
+                {% if students %}
+                    <div class="student-list">
+                        {% for student in students %}
+                            <a
+                                href="?student={{ student.id }}{% if selected_section %}&section={{ selected_section|urlencode }}{% endif %}{% if selected_status %}&status={{ selected_status|urlencode }}{% endif %}{% if query %}&q={{ query|urlencode }}{% endif %}"
+                                class="student-card {% if active_student and active_student.id == student.id %}active{% endif %}"
+                            >
+                                <div class="avatar">{{ student.initials }}</div>
+                                <div class="student-card-body">
+                                    <div class="student-card-top">
+                                        <span class="student-name">{{ student.full_name }}</span>
+                                        <span class="status-badge status-{{ student.enrollment_status|slugify }}">
+                                            {{ student.enrollment_status }}
+                                        </span>
+                                    </div>
+                                    <div class="student-card-meta">
+                                        <span>ID: {{ student.student_id }}</span>
+                                        <span>&bull;</span>
+                                        <span>{{ student.class_section }}</span>
+                                    </div>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state-small">
+                        <p>No students match your current filter.</p>
+                        <a href="{% url 'students:register' %}" class="btn btn-primary">Register First Student</a>
+                    </div>
+                {% endif %}
+            </aside>
+
+            <!-- Right Column: Selected Student Detailed Profile -->
+            <div class="profile-panel">
+                {% if active_student %}
+                    <!-- Hero Profile Header -->
+                    <div class="profile-hero">
+                        <div class="profile-hero-main">
+                            <div class="avatar avatar-lg">{{ active_student.initials }}</div>
+                            <div>
+                                <div class="hero-badges">
+                                    <span class="pill-light">{{ active_student.student_id }}</span>
+                                    <span class="pill-light">{{ active_student.class_section }}</span>
+                                    <span class="pill-light">{{ active_student.year_level }}</span>
+                                </div>
+                                <h2 class="profile-name">{{ active_student.complete_full_name }}</h2>
+                                <p class="profile-program">{{ active_student.program }} &mdash; {{ active_student.academic_term }}</p>
+                            </div>
+                        </div>
+
+                        <div class="profile-hero-actions">
+                            <a
+                                href="/admin/students/student/{{ active_student.id }}/change/"
+                                target="_blank"
+                                class="btn btn-white"
+                            >
+                                Edit Profile
+                            </a>
+                            <button type="button" onclick="window.print()" class="btn btn-translucent">
+                                Print Sheet
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Section Filter Tabs -->
+                    <div class="section-tabs" role="tablist">
+                        <button type="button" class="tab-btn active" data-target="all">All Information</button>
+                        <button type="button" class="tab-btn" data-target="personal">Personal Info</button>
+                        <button type="button" class="tab-btn" data-target="background">Background Info</button>
+                        <button type="button" class="tab-btn" data-target="enrollment">Enrollment & Class</button>
+                    </div>
+
+                    <!-- Detail Cards -->
+                    <div class="detail-sections">
+                        <!-- 1. Personal Information -->
+                        <article class="info-card" data-category="personal">
+                            <div class="info-card-header">
+                                <h3>Personal Information</h3>
+                                <span class="section-tag">Identity & Contact</span>
+                            </div>
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">Full Legal Name</span>
+                                    <span class="info-value">{{ active_student.complete_full_name }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Date of Birth & Age</span>
+                                    <span class="info-value">{{ active_student.date_of_birth|date:"F j, Y" }} ({{ active_student.age }} yrs old)</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Gender</span>
+                                    <span class="info-value">{{ active_student.gender }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Nationality</span>
+                                    <span class="info-value">{{ active_student.nationality }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Email Address</span>
+                                    <span class="info-value">{{ active_student.email }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Mobile Number</span>
+                                    <span class="info-value">{{ active_student.phone_number }}</span>
+                                </div>
+                                <div class="info-item info-item-full">
+                                    <span class="info-label">Home Address</span>
+                                    <span class="info-value">{{ active_student.home_address }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Emergency Contact</span>
+                                    <span class="info-value">{{ active_student.emergency_contact_name }} ({{ active_student.emergency_contact_relation }})</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Emergency Phone</span>
+                                    <span class="info-value">{{ active_student.emergency_contact_phone }}</span>
+                                </div>
+                            </div>
+                        </article>
+
+                        <!-- 2. Background Information -->
+                        <article class="info-card" data-category="background">
+                            <div class="info-card-header">
+                                <h3>Background Information</h3>
+                                <span class="section-tag">Academic History & Family</span>
+                            </div>
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">Previous School Attended</span>
+                                    <span class="info-value">{{ active_student.previous_school }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">School Type & Grad Year</span>
+                                    <span class="info-value">{{ active_student.school_type }} ({{ active_student.graduation_year }})</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Previous GPA / GWA</span>
+                                    <span class="info-value highlight-purple">{{ active_student.previous_gpa }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Honors & Distinctions</span>
+                                    <span class="info-value">{{ active_student.honors_awards|default:"None recorded" }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Parent / Guardian Name</span>
+                                    <span class="info-value">{{ active_student.guardian_name }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Guardian Occupation</span>
+                                    <span class="info-value">{{ active_student.guardian_occupation|default:"Not specified" }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Guardian Contact Number</span>
+                                    <span class="info-value">{{ active_student.guardian_contact }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Scholarship / Financial Aid</span>
+                                    <span class="info-value">{{ active_student.scholarship_status }}</span>
+                                </div>
+                            </div>
+                        </article>
+
+                        <!-- 3. Enrollment & Class Details -->
+                        <article class="info-card" data-category="enrollment">
+                            <div class="info-card-header">
+                                <h3>Enrollment & Class Standing</h3>
+                                <span class="status-badge status-{{ active_student.enrollment_status|slugify }}">
+                                    {{ active_student.enrollment_status }}
+                                </span>
+                            </div>
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">Assigned Class Section</span>
+                                    <span class="info-value">{{ active_student.class_section }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Degree Program</span>
+                                    <span class="info-value">{{ active_student.program }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Academic Term</span>
+                                    <span class="info-value">{{ active_student.academic_term }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Date Enrolled</span>
+                                    <span class="info-value">{{ active_student.enrollment_date|date:"F j, Y" }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Credentials Verification</span>
+                                    <span class="info-value">
+                                        {% if active_student.documents_verified %}
+                                            <span class="verified-chip">Verified & Complete</span>
+                                        {% else %}
+                                            <span class="pending-chip">Incomplete / For Review</span>
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <div class="info-item info-item-full">
+                                    <span class="info-label">Administrator Remarks</span>
+                                    <span class="info-value note-box">{{ active_student.admin_notes|default:"No administrative remarks added." }}</span>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                {% else %}
+                    <div class="empty-state-large">
+                        <div class="empty-icon">🎓</div>
+                        <h3>No Students Registered Yet</h3>
+                        <p>Click below to register a new student directly without opening the admin panel.</p>
+                        <a href="{% url 'students:register' %}" class="btn btn-primary">+ Register Student</a>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+    </main>
+
+    <script src="{% static 'students/js/app.js' %}"></script>
+</body>
+</html>

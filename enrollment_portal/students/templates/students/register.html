@@ -1,0 +1,290 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Student — EnrollFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'students/css/style.css' %}">
+</head>
+<body>
+    <!-- Top Header -->
+    <header class="topbar">
+        <div class="container topbar-inner">
+            <a href="{% url 'students:directory' %}" class="brand brand-link">
+                <div class="brand-logo">EF</div>
+                <div>
+                    <h1 class="brand-title">EnrollFlow</h1>
+                    <p class="brand-subtitle">Student Enrollment Registration</p>
+                </div>
+            </a>
+
+            <div class="topbar-actions">
+                <button type="button" id="fillDemoBtn" class="btn btn-soft">
+                    Auto-Fill Sample
+                </button>
+                <a href="{% url 'students:directory' %}" class="btn btn-ghost">
+                    &larr; Back to Class Roster
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container main-content register-container">
+        <div class="register-banner">
+            <div>
+                <span class="pill-light">Online Enrollment Form</span>
+                <h2>Register New Student</h2>
+                <p>Complete the student's personal, background, and class assignment details below to add them immediately to the class roster.</p>
+            </div>
+        </div>
+
+        {% if form.errors %}
+            <div class="alert-banner alert-error">
+                <span>Please review the highlighted fields below and fix any errors before submitting.</span>
+            </div>
+        {% endif %}
+
+        <form method="post" class="register-form" novalidate>
+            {% csrf_token %}
+
+            <!-- Section 1: Enrollment & Class Assignment -->
+            <section class="form-card">
+                <div class="info-card-header">
+                    <h3>1. Enrollment & Class Assignment</h3>
+                    <span class="section-tag">Class Placement</span>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="{{ form.student_id.id_for_label }}">Student ID Number *</label>
+                        {{ form.student_id }}
+                        {% if form.student_id.errors %}<span class="field-error">{{ form.student_id.errors.0 }}</span>{% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.class_section.id_for_label }}">Class / Section *</label>
+                        {{ form.class_section }}
+                        {% if existing_sections %}
+                            <span class="field-hint">Existing: {% for sec in existing_sections %}{{ sec }}{% if not forloop.last %}, {% endif %}{% endfor %}</span>
+                        {% endif %}
+                        {% if form.class_section.errors %}<span class="field-error">{{ form.class_section.errors.0 }}</span>{% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.program.id_for_label }}">Degree Program *</label>
+                        {{ form.program }}
+                        {% if form.program.errors %}<span class="field-error">{{ form.program.errors.0 }}</span>{% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.year_level.id_for_label }}">Year Level *</label>
+                        {{ form.year_level }}
+                        {% if form.year_level.errors %}<span class="field-error">{{ form.year_level.errors.0 }}</span>{% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.academic_term.id_for_label }}">Academic Term *</label>
+                        {{ form.academic_term }}
+                        {% if form.academic_term.errors %}<span class="field-error">{{ form.academic_term.errors.0 }}</span>{% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.enrollment_status.id_for_label }}">Enrollment Status *</label>
+                        {{ form.enrollment_status }}
+                        {% if form.enrollment_status.errors %}<span class="field-error">{{ form.enrollment_status.errors.0 }}</span>{% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.enrollment_date.id_for_label }}">Date Enrolled *</label>
+                        {{ form.enrollment_date }}
+                        {% if form.enrollment_date.errors %}<span class="field-error">{{ form.enrollment_date.errors.0 }}</span>{% endif %}
+                    </div>
+
+                    <div class="form-group checkbox-group">
+                        <label class="checkbox-label" for="{{ form.documents_verified.id_for_label }}">
+                            {{ form.documents_verified }}
+                            <span>Credentials & Documents Verified</span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 2: Personal Information -->
+            <section class="form-card">
+                <div class="info-card-header">
+                    <h3>2. Personal Information</h3>
+                    <span class="section-tag">Identity & Contact</span>
+                </div>
+
+                <div class="form-grid form-grid-3">
+                    <div class="form-group">
+                        <label for="{{ form.first_name.id_for_label }}">First Name *</label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}<span class="field-error">{{ form.first_name.errors.0 }}</span>{% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.middle_name.id_for_label }}">Middle Name</label>
+                        {{ form.middle_name }}
+                        {% if form.middle_name.errors %}<span class="field-error">{{ form.middle_name.errors.0 }}</span>{% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.last_name.id_for_label }}">Last Name *</label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}<span class="field-error">{{ form.last_name.errors.0 }}</span>{% endif %}
+                    </div>
+                </div>
+
+                <div class="form-grid form-grid-3 mt-16">
+                    <div class="form-group">
+                        <label for="{{ form.date_of_birth.id_for_label }}">Date of Birth *</label>
+                        {{ form.date_of_birth }}
+                        {% if form.date_of_birth.errors %}<span class="field-error">{{ form.date_of_birth.errors.0 }}</span>{% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.gender.id_for_label }}">Gender *</label>
+                        {{ form.gender }}
+                        {% if form.gender.errors %}<span class="field-error">{{ form.gender.errors.0 }}</span>{% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.nationality.id_for_label }}">Nationality *</label>
+                        {{ form.nationality }}
+                        {% if form.nationality.errors %}<span class="field-error">{{ form.nationality.errors.0 }}</span>{% endif %}
+                    </div>
+                </div>
+
+                <div class="form-grid mt-16">
+                    <div class="form-group">
+                        <label for="{{ form.email.id_for_label }}">Email Address *</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}<span class="field-error">{{ form.email.errors.0 }}</span>{% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.phone_number.id_for_label }}">Mobile Number *</label>
+                        {{ form.phone_number }}
+                        {% if form.phone_number.errors %}<span class="field-error">{{ form.phone_number.errors.0 }}</span>{% endif %}
+                    </div>
+
+                    <div class="form-group form-group-full">
+                        <label for="{{ form.home_address.id_for_label }}">Home Address *</label>
+                        {{ form.home_address }}
+                        {% if form.home_address.errors %}<span class="field-error">{{ form.home_address.errors.0 }}</span>{% endif %}
+                    </div>
+                </div>
+
+                <div class="form-grid form-grid-3 mt-16">
+                    <div class="form-group">
+                        <label for="{{ form.emergency_contact_name.id_for_label }}">Emergency Contact Name *</label>
+                        {{ form.emergency_contact_name }}
+                        {% if form.emergency_contact_name.errors %}<span class="field-error">{{ form.emergency_contact_name.errors.0 }}</span>{% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.emergency_contact_relation.id_for_label }}">Relationship *</label>
+                        {{ form.emergency_contact_relation }}
+                        {% if form.emergency_contact_relation.errors %}<span class="field-error">{{ form.emergency_contact_relation.errors.0 }}</span>{% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.emergency_contact_phone.id_for_label }}">Emergency Contact Phone *</label>
+                        {{ form.emergency_contact_phone }}
+                        {% if form.emergency_contact_phone.errors %}<span class="field-error">{{ form.emergency_contact_phone.errors.0 }}</span>{% endif %}
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 3: Background Information -->
+            <section class="form-card">
+                <div class="info-card-header">
+                    <h3>3. Educational & Family Background</h3>
+                    <span class="section-tag">Academic History & Guardian</span>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="{{ form.previous_school.id_for_label }}">Previous School Attended *</label>
+                        {{ form.previous_school }}
+                        {% if form.previous_school.errors %}<span class="field-error">{{ form.previous_school.errors.0 }}</span>{% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.school_type.id_for_label }}">School Type *</label>
+                        {{ form.school_type }}
+                        {% if form.school_type.errors %}<span class="field-error">{{ form.school_type.errors.0 }}</span>{% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.graduation_year.id_for_label }}">Graduation Year *</label>
+                        {{ form.graduation_year }}
+                        {% if form.graduation_year.errors %}<span class="field-error">{{ form.graduation_year.errors.0 }}</span>{% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.previous_gpa.id_for_label }}">Previous GPA / GWA *</label>
+                        {{ form.previous_gpa }}
+                        {% if form.previous_gpa.errors %}<span class="field-error">{{ form.previous_gpa.errors.0 }}</span>{% endif %}
+                    </div>
+
+                    <div class="form-group form-group-full">
+                        <label for="{{ form.honors_awards.id_for_label }}">Honors & Distinctions</label>
+                        {{ form.honors_awards }}
+                        {% if form.honors_awards.errors %}<span class="field-error">{{ form.honors_awards.errors.0 }}</span>{% endif %}
+                    </div>
+                </div>
+
+                <div class="form-grid form-grid-3 mt-16">
+                    <div class="form-group">
+                        <label for="{{ form.guardian_name.id_for_label }}">Parent / Guardian Name *</label>
+                        {{ form.guardian_name }}
+                        {% if form.guardian_name.errors %}<span class="field-error">{{ form.guardian_name.errors.0 }}</span>{% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.guardian_occupation.id_for_label }}">Guardian Occupation</label>
+                        {{ form.guardian_occupation }}
+                        {% if form.guardian_occupation.errors %}<span class="field-error">{{ form.guardian_occupation.errors.0 }}</span>{% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.guardian_contact.id_for_label }}">Guardian Contact Number *</label>
+                        {{ form.guardian_contact }}
+                        {% if form.guardian_contact.errors %}<span class="field-error">{{ form.guardian_contact.errors.0 }}</span>{% endif %}
+                    </div>
+                </div>
+
+                <div class="form-grid mt-16">
+                    <div class="form-group">
+                        <label for="{{ form.scholarship_status.id_for_label }}">Scholarship / Financial Aid *</label>
+                        {{ form.scholarship_status }}
+                        {% if form.scholarship_status.errors %}<span class="field-error">{{ form.scholarship_status.errors.0 }}</span>{% endif %}
+                    </div>
+
+                    <div class="form-group form-group-full">
+                        <label for="{{ form.admin_notes.id_for_label }}">Enrollment Notes / Remarks</label>
+                        {{ form.admin_notes }}
+                        {% if form.admin_notes.errors %}<span class="field-error">{{ form.admin_notes.errors.0 }}</span>{% endif %}
+                    </div>
+                </div>
+            </section>
+
+            <!-- Submit Actions -->
+            <div class="form-actions">
+                <a href="{% url 'students:directory' %}" class="btn btn-ghost">Cancel</a>
+                <button type="submit" class="btn btn-primary btn-lg">
+                    Complete Student Registration
+                </button>
+            </div>
+        </form>
+    </main>
+
+    <script src="{% static 'students/js/app.js' %}"></script>
+</body>
+</html>

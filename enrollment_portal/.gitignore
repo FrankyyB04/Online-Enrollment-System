@@ -1,0 +1,10 @@
+# Python & Virtual Environment
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django local database & static build
+db.sqlite3
+staticfiles/
+.env
