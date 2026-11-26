@@ -1,0 +1,162 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ profile.full_name }} | Facebook</title>
+    <link rel="stylesheet" href="{% static 'fb_profile/css/profile.css' %}">
+</head>
+<body>
+
+    <!-- Top Navbar -->
+    <nav class="navbar">
+        <a href="{% url 'fb_profile:profile' %}" class="fb-logo">Facebook</a>
+        <input type="text" class="search-bar" placeholder="Search Facebook">
+    </nav>
+
+    <!-- Profile Header -->
+    <div class="profile-header-wrapper">
+        <div class="header-container">
+            <div class="cover-photo"></div>
+
+            <div class="profile-info-bar">
+                <div class="avatar-and-name">
+                    <div class="avatar-wrapper">
+                        {% if profile.profile_pic %}
+                            <img src="{{ profile.profile_pic.url }}" alt="{{ profile.full_name }}" class="avatar-img">
+                        {% else %}
+                            <svg class="avatar-img" viewBox="0 0 100 100" fill="#BCC0C4">
+                                <circle cx="50" cy="36" r="20"/>
+                                <path d="M15 92 C15 68, 85 68, 85 92 Z"/>
+                            </svg>
+                        {% endif %}
+
+                        <button type="button" class="camera-btn" onclick="openUploadModal()" title="Update profile picture">
+                            📷
+                        </button>
+                    </div>
+
+                    <div class="user-details">
+                        <h1>{{ profile.full_name }}</h1>
+                        <div class="friends-count">{{ profile.friends_count }} friends</div>
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <button type="button" class="btn btn-primary" onclick="openUploadModal()">+ Add to story</button>
+                    <button type="button" class="btn btn-secondary" onclick="openUploadModal()">✏️ Edit profile</button>
+                </div>
+            </div>
+
+            <div class="profile-tabs">
+                <a href="#" class="tab-item active">Posts</a>
+                <a href="#" class="tab-item">About</a>
+                <a href="#" class="tab-item">Friends</a>
+                <a href="#" class="tab-item">Photos</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Two-Column Layout -->
+    <div class="main-grid">
+        <!-- Left Sidebar: Intro -->
+        <aside>
+            <div class="card">
+                <h2>Intro</h2>
+                <p class="bio-text">{{ profile.bio }}</p>
+                <ul class="intro-list">
+                    <li>💼 <span>Works at <strong>{{ profile.work }}</strong></span></li>
+                    <li>📍 <span>Lives in <strong>{{ profile.location }}</strong></span></li>
+                    <li>👥 <span>Followed by <strong>{{ profile.friends_count }} people</strong></span></li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Right Column: Composer & Feed -->
+        <main>
+            <div class="card">
+                <div class="composer-top">
+                    {% if profile.profile_pic %}
+                        <img src="{{ profile.profile_pic.url }}" alt="Avatar" class="mini-avatar">
+                    {% else %}
+                        <div class="mini-avatar"></div>
+                    {% endif %}
+                    <div class="composer-input">What's on your mind, {{ profile.full_name }}?</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="post-header">
+                    {% if profile.profile_pic %}
+                        <img src="{{ profile.profile_pic.url }}" alt="Avatar" class="mini-avatar">
+                    {% else %}
+                        <div class="mini-avatar"></div>
+                    {% endif %}
+                    <div class="post-meta">
+                        <h4>{{ profile.full_name }}</h4>
+                        <span>Updated profile picture · 🌐</span>
+                    </div>
+                </div>
+                <p class="post-body">Bakal ako</p>
+                {% if profile.profile_pic %}
+                    <img src="{{ profile.profile_pic.url }}" alt="Profile Photo Post" class="post-uploaded-preview">
+                {% endif %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Profile Picture Upload Modal -->
+    <div class="modal-backdrop" id="uploadModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>Update profile picture</h3>
+                <button type="button" class="close-modal" onclick="closeUploadModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                {% if profile.profile_pic %}
+                    <img src="{{ profile.profile_pic.url }}" id="imagePreview" class="preview-circle" alt="Preview">
+                {% else %}
+                    <img src="" id="imagePreview" class="preview-circle" alt="Preview" style="display: none;">
+                {% endif %}
+
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form.profile_pic }}
+                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                        Save Profile Picture
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById('uploadModal');
+        const fileInput = document.getElementById('id_profile_pic');
+        const preview = document.getElementById('imagePreview');
+
+        function openUploadModal() {
+            modal.classList.add('open');
+        }
+
+        function closeUploadModal() {
+            modal.classList.remove('open');
+        }
+
+        fileInput.addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                preview.src = URL.createObjectURL(file);
+                preview.style.display = 'block';
+            }
+        });
+
+        window.addEventListener('click', function (e) {
+            if (e.target === modal) {
+                closeUploadModal();
+            }
+        });
+    </script>
+</body>
+</html>

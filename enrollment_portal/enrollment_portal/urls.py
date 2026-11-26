@@ -8,4 +8,6 @@ admin.site.index_title = "Class & Student Records Management"
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('students.urls')),
+    path('profile/', include('fb_profile.urls')),
+    path("api/computers/", include("computers_api.urls")),
 ]

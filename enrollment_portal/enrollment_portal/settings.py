@@ -25,6 +25,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'students',
+    'fb_profile',
+    'rest_framework',
+    'computers_api',
 ]
 
 MIDDLEWARE = [
